@@ -1,0 +1,12 @@
+API_URL= http://localhost:3000
+MONGODB_URL=mongodb+srv://abhiparate404:r9BLvT7XbBxUdQQi@cluster0.voa3a5z.mongodb.net/productdb?retryWrites=true&w=majority&appName=Cluster0
+NEXTAUTH_SECRET=abhishekparate
+GOOGLE_CLIENT_ID=725874165576-p1efl115pt8b46f05obn2lona5on6444.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+NEXTAUTH_URL=http://localhost:3000
+ADMIN_URL=http://localhost:3000/admin
+
+CLOUD_NAME=dq8l4bdkl
+UPLOAD_PRESET=next-js
+CLOUD_API_KEY=725342172635158
+CLOUD_API_SECRET=LyH9nmOKS1Hs0k5M32-t0FS0GAc
