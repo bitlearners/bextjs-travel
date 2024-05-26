@@ -103,7 +103,8 @@ const AddPage = () => {
 
         const data = await res.json();
         toast.success("Page created successfully!");
-        router.push(`/web-builder/${data.slug}`);
+
+        router.push("/admin/web-builder/"+slug);
         
 
       } catch (error) {

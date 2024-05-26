@@ -1,14 +1,17 @@
 "use client"
+import FooterPage from '@/components/Footer/Footer';
+import Header from '@/components/header/Header';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import { useEffect, useState } from 'react';
 
-async function getHomePage() {
+async function getHomePage(slug) {
     try {
-        const response = await fetch("/api/pages", { cache: "no-cache" });
+        const response = await fetch(`/api/pages?slug=${slug}`, { cache: "no-cache" });
         const data = await response.json();
         if (data.success) {
             return data.result;
         } else {
-            console.error("Failed to fetch home page content:", data.error);
             return null;
         }
     } catch (error) {
@@ -17,12 +20,13 @@ async function getHomePage() {
     }
 }
 
+
 const HomePage = () => {
     const [pageContent, setPageContent] = useState(null);
 
     useEffect(() => {
         const fetchHomePageData = async () => {
-            const data = await getHomePage();
+            const data = await getHomePage("/");
             if (data) {
                 setPageContent(data);
             }
@@ -30,14 +34,31 @@ const HomePage = () => {
         fetchHomePageData();
     }, []);
 
+    useEffect(() => {
+        AOS.init({
+             duration: 800,
+             once: false,
+           })
+     }, [])
+
+    if (!pageContent) {
+        return null;
+    }
+
     return (
-        <div>
-            {pageContent ? (
-                <div dangerouslySetInnerHTML={{ __html: pageContent.content }}></div>
-            ) : (
-                <p>Loading...</p>
-            )}
-        </div>
+        <>
+
+        <Header/>
+
+        <div className="hero min-h-screen -top-0" style={{backgroundImage: `url(${pageContent.imageUrl})`}}>
+
+  
+
+</div>
+        
+        <div dangerouslySetInnerHTML={{ __html: pageContent.content }}></div>
+<FooterPage/>
+        </>
     );
 };
 

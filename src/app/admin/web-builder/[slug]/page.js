@@ -1,22 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+'use client';
+import React, { useState, useEffect  } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import ReactDraggable from 'react-draggable';
-import Block from '../components/Block';
-import { blocks } from '../components/blocks';
+import { blocks } from './components/blocks';
+import Block from './components/Block';
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
-const PageBuilder = () => {
-  const router = useRouter();
-  const { slug } = router.query;
 
+const WebPageBuilder = (props) => {
+  
+
+  let slug = props.params.slug;
+  
   const [previewBlocks, setPreviewBlocks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentBlock, setCurrentBlock] = useState(null);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(null);
+  const router = useRouter();
+
+console.log(slug);
 
   useEffect(() => {
-    // Fetch page data by slug if needed
-  }, [slug]);
+    const checkSlug = async () => {
+      try {
+        const response = await fetch(`/api/pages/allpages/${slug}`);
+        if (response.status === 200) {
+          const data = await response.json();
+          if (data.success) {
+            // If you want to do something with the data when slug is valid
+            // console.log('Slug is valid:', data);
+          } else {
+            router.push('/admin');
+          }
+        } else {
+          router.push('/admin');
+        }
+      } catch (error) {
+        // console.error('Error checking slug:', error);
+        router.push('/');
+      }
+    };
+
+    checkSlug();
+  }, [slug, router]);
+
+
 
   const onDragEnd = (result) => {
     const { source, destination } = result;
@@ -24,6 +53,8 @@ const PageBuilder = () => {
     if (!destination) {
       return;
     }
+
+ 
 
     if (source.droppableId === 'blocksPalette' && destination.droppableId === 'previewArea') {
       const blockId = result.draggableId;
@@ -71,50 +102,52 @@ const PageBuilder = () => {
   const generateHTML = (blocks) => {
     return blocks.map(block => {
       return `<div class="block">
-                <img src="${block.image}" alt="Block Image" class="block-image" />
+                
                 <div class="block-content">${block.content}</div>
               </div>`;
     }).join('');
   };
 
-  const handleExport = () => {
-    const htmlContent = generateHTML(previewBlocks);
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'exported_blocks.html';
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  const handleCancel = async () => {
+    router.push("/admin/pages");
+  }
 
-  const savePage = async (status) => {
-    const pageData = {
-      blocks: previewBlocks,
-      status,
-    };
+
+  const handleExport = async () => {
+    const htmlContent = generateHTML(previewBlocks);
 
     try {
-      const res = await fetch(`/api/pages/${slug}`, {
+      const response = await fetch(`/api/pages/${slug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(pageData),
+        body: JSON.stringify({ content: htmlContent, status:"Published" }),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message);
-      }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // console.log('Content updated successfully:', result.result);
+          toast.success('Content updated successfully');
+          router.push("/admin/pages");
 
-      const data = await res.json();
-      toast.success(`Page ${status} successfully!`);
-      console.log(`Page ${status} successfully:`, data);
+        } else {
+          // console.error('Error updating content:', result.message);
+          toast.error('Error updating content: ' + result.message);
+
+        }
+      } else {
+        // console.error('Error updating content: HTTP status', response.status);
+        toast.error('Error updating content: HTTP status ' + response.status);
+
+      }
     } catch (error) {
-      toast.error(`Failed to save page: ${error.message}`);
+      // console.error('Error updating content:', error);
+      toast.error('Error updating content:', error);
     }
   };
+
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -161,24 +194,18 @@ const PageBuilder = () => {
               className="bg-gray-100 p-4 rounded w-full"
             >
               <h2 className="text-lg font-semibold mb-4 text-indigo-500">Preview Area</h2>
-              <div className="flex justify-end mb-4">
+              <div className="flex justify-end mb-4 ">
                 <button
                   onClick={handleExport}
-                  className="bg-green-500 text-white px-4 py-2 rounded"
+                  className="bg-green-500 text-white mx-2 px-4 py-2 rounded"
                 >
-                  Export
+                  Update and Publish
                 </button>
                 <button
-                  onClick={() => savePage('draft')}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded ml-2"
+                  onClick={handleCancel}
+                  className="bg-red-500 text-white mx-2 px-4 py-2 rounded"
                 >
-                  Save as Draft
-                </button>
-                <button
-                  onClick={() => savePage('published')}
-                  className="bg-blue-500 text-white px-4 py-2 rounded ml-2"
-                >
-                  Publish
+                  Cancel
                 </button>
               </div>
               {previewBlocks.map((block, index) => (
@@ -216,7 +243,7 @@ const PageBuilder = () => {
 
         {isModalOpen && (
           <ReactDraggable handle=".draggable-handle">
-            <div className="bg-gray-200 p-4 rounded w-64 h-screen fixed bottom-0  my-1 left-4 z-10">
+            <div className="bg-gray-200 p-4 rounded w-72 h-screen fixed bottom-4 left-4 z-10">
               <div className="draggable-handle bg-gray-300 p-2 cursor-move rounded mb-4">
                 <h2 className="text-lg font-semibold text-black">Edit Block</h2>
               </div>
@@ -225,11 +252,11 @@ const PageBuilder = () => {
                 <textarea
                   value={currentBlock.content}
                   onChange={(e) => setCurrentBlock({ ...currentBlock, content: e.target.value })}
-                  className="w-full h-96	p-2 border rounded text-black"
+                  className="w-full p-2 h-96 border rounded text-black"
                   rows="4"
                 />
               </div>
-              <div className="flex justify-end bottom-0 ">
+              <div className="flex justify-end">
                 <button onClick={handleModalClose} className="bg-gray-500 text-white px-4 py-2 rounded mr-2">
                   Cancel
                 </button>
@@ -245,4 +272,4 @@ const PageBuilder = () => {
   );
 };
 
-export default PageBuilder;
+export default WebPageBuilder;

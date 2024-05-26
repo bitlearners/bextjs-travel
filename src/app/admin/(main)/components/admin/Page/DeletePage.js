@@ -2,20 +2,20 @@
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
-export default function DeleteUser(props) {
+export default function DeletePage(props) {
   const router =useRouter();
 
   const deleteRecord = async () => {
     console.log(props);
-    let response = await fetch(`/api/auth/register/${props.id}`, {
+    let response = await fetch(`/api/pages/${props.slug}`, {
       method: "DELETE"
     });
     response = await response.json();
 
     if (response.success) {
-
-      router.push("/admin/users");
-      toast.success("User Deleted successful");
+    
+      router.push("/admin/pages");
+      toast.success("Page Deleted successful");
     }
   };
 
