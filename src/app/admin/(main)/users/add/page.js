@@ -1,6 +1,5 @@
-"use client"
+"use client";
 import React, { useState, useContext, useEffect } from "react";
-
 import Image from "next/image";
 import AuthContext from "../../../../../../context/AuthContext";
 
@@ -16,21 +15,19 @@ const RegisterPage = () => {
   const [errorMessages, setErrorMessages] = useState({});
   const [state, setState] = useState(initialState);
 
-  const CLOUD_NAME="dq8l4bdkl";
-  const UPLOAD_PRESET="next-js";
-
+  const CLOUD_NAME = "dq8l4bdkl";
+  const UPLOAD_PRESET = "next-js";
 
   useEffect(() => {
     if (error) {
-      console.log(error);
+      setErrorMessages({ form: error });
       clearErrors();
     }
-  }, [error]);
+  }, [error, clearErrors]);
 
   const handleChange = (event) => {
     const { name, value, type, files } = event.target;
-
-    if (type === 'file') {
+    if (type === "file") {
       setState({ ...state, photo: files[0] });
     } else {
       setState({ ...state, [name]: value });
@@ -64,60 +61,60 @@ const RegisterPage = () => {
     e.preventDefault();
     if (validateInputs()) {
       const image = await uploadImage();
-  
       if (!image) {
-        console.error('Image upload failed');
-        return; // Exit early if image upload fails
+        console.error("Image upload failed");
+        return;
       }
-      const avatar = image.secure_url
-       
-  
-    registerUser({ name, email, password, avatar});
+      const avatar = image.secure_url;
+      registerUser({ name, email, password, avatar });
     }
-
   };
-  
+
   const uploadImage = async () => {
     if (!state.photo) return;
-  
     const formData = new FormData();
-    formData.append('file', state.photo);
-    formData.append('upload_preset', UPLOAD_PRESET); // Specify your upload preset here
+    formData.append("file", state.photo);
+    formData.append("upload_preset", UPLOAD_PRESET);
 
-  
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-        method: "POST",
-        body: formData
-      });
-  
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       if (!res.ok) {
-        throw new Error('Failed to upload image');
+        throw new Error("Failed to upload image");
       }
-  
       const data = await res.json();
-      return data; // Assuming Cloudinary response contains image id and URL
+      return data;
     } catch (error) {
-      console.error('Image upload failed:', error);
-      return null; // Return null if upload fails
+      console.error("Image upload failed:", error);
+      return null;
     }
-  }
-  
+  };
 
   return (
     <div className="p-6 m-4 rounded-lg bg-white shadow-lg">
-      <form onSubmit={submitHandler} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <form
+        onSubmit={submitHandler}
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+      >
         <h2 className="mb-5 text-2xl font-semibold col-span-full">Add New User</h2>
 
-        {/* First Row: Full Name & Email */}
         <div className="mb-4">
           <label className="block mb-1">Full Name</label>
           <input
             className="input input-bordered w-full"
             type="text"
             placeholder="Type your name"
+            name="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              setErrorMessages((prev) => ({ ...prev, name: "" }));
+            }}
             required
           />
           {errorMessages.name && (
@@ -131,8 +128,12 @@ const RegisterPage = () => {
             className="input input-bordered w-full"
             type="text"
             placeholder="Type your email"
+            name="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErrorMessages((prev) => ({ ...prev, email: "" }));
+            }}
             required
           />
           {errorMessages.email && (
@@ -140,16 +141,19 @@ const RegisterPage = () => {
           )}
         </div>
 
-        {/* Second Row: Password & Profile Image */}
         <div className="mb-4">
           <label className="block mb-1">Password</label>
           <input
             className="input input-bordered w-full"
             type="password"
             placeholder="Type your password"
+            name="password"
             minLength={6}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrorMessages((prev) => ({ ...prev, password: "" }));
+            }}
             required
           />
           {errorMessages.password && (
@@ -162,18 +166,16 @@ const RegisterPage = () => {
           <input
             type="file"
             accept=".jpg, .jpeg, .png"
-            className="file-input file-input-bordered  w-full"
+            className="file-input file-input-bordered w-full"
             onChange={handleChange}
-            required // Add required attribute to ensure file selection
+            required
           />
-          
           {errorMessages.photo && (
             <p className="text-red-500">{errorMessages.photo}</p>
           )}
-
           {state.photo && (
             <div>
-              <Image 
+              <Image
                 src={URL.createObjectURL(state.photo)}
                 priority
                 alt="Sample image"
@@ -184,7 +186,10 @@ const RegisterPage = () => {
           )}
         </div>
 
-        {/* Submit Button */}
+        {errorMessages.form && (
+          <p className="text-red-500 col-span-full">{errorMessages.form}</p>
+        )}
+
         <button
           type="submit"
           className="btn btn-outline btn-primary w-32 justify-self-center"
@@ -194,6 +199,6 @@ const RegisterPage = () => {
       </form>
     </div>
   );
-}
+};
 
 export default RegisterPage;

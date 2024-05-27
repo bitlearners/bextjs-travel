@@ -37,7 +37,7 @@ export default function NavBar({ fixed }) {
                       className="px-3 py-2 flex items-center text-xs uppercase font-bold leading-snug text-white hover:opacity-75"
                       href="/admin"
                     >
-                      <span>Admin</span>
+                      <span>Welcome: Admin</span>
                     </Link>
                   </li>
                 )}

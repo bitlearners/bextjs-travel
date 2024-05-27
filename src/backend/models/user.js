@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter your name"],
   },
-
   email: {
     type: String,
     required: [true, "Please enter your email"],
@@ -39,5 +38,4 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-export default mongoose.models.Users || mongoose.model("Users", userSchema);
-
+export default mongoose.models.User || mongoose.model("User", userSchema);

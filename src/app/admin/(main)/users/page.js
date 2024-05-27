@@ -2,19 +2,27 @@ import Image from "next/image";
 import Link from "next/link";
 import DeleteUser from "../components/admin/User/DeleteUser";
 
-const getProduct = async () => {
-    let data = await fetch("/api/auth/register", { cache: "no-cache" });
-    data = await data.json();
+// Function to fetch users data
+const getUsers = async () => {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  try {
+    const response = await fetch(`${baseUrl}/api/users`, { cache: "no-cache" });
+    const data = await response.json();
+    console.log("Fetched users data:", data); // Log the fetched data
     if (data.success) {
-        return data.result;
+      return data.result;
+    } else {
+      return [];
     }
-    else {
-        return { success: false }
-    }
-}
+  } catch (error) {
+    console.error("Error fetching users data:", error);
+    return [];
+  }
+};
 
 export default async function UserList() {
-  let users = await getProduct();
+  const users = await getUsers();
+  console.log("Users state:", users); // Log the users state
 
   const adminUrl = process.env.ADMIN_URL || "/admin";
 
@@ -25,59 +33,61 @@ export default async function UserList() {
 
         <div className="mb-4 w-full">
           <div className="overflow-x-auto">
-            <table className="table">
+            <table className="table-auto w-full">
               {/* head */}
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Job</th>
-                  <th>Favorite Color</th>
+                  <th>Email</th>
+                  <th>Role</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-          
-                {/* row 1 */}
-                {users.map((item) => (
-                  <tr key={item._id}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div className="avatar">
-                          <div className="mask mask-squircle w-12 h-12">
-                            <Image src={item.avatar} alt="alt" width={100} height={100} />
-                             
+                {users.length > 0 ? (
+                  users.map((item) => (
+                    <tr key={item._id}>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div className="avatar">
+                            <div className="mask mask-squircle w-12 h-12">
+                              <Image
+                                src={item.avatar || "/profile.jpg"}
+                                alt={item.name}
+                                width={100}
+                                height={100}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-bold">{item.name}</div>
                           </div>
                         </div>
-                        <div>
-                          <div className="font-bold">{item.name}</div>
-                         
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                    <div className="font-medium">{item.email}</div>
-                     
-                    </td>
-                    <td>{item.role}</td>
-                    <th>
-                      <Link href={`${adminUrl}/users/${item._id}/`} className="mx-2 btn btn-primary btn-xs">
-                        Update
-                      </Link>
-                    
-                      <DeleteUser id={item._id}/>
-
-                      
-                      
-                    </th>
+                      </td>
+                      <td>
+                        <div className="font-medium">{item.email}</div>
+                      </td>
+                      <td>{item.role}</td>
+                      <th>
+                        <Link href={`${adminUrl}/users/${item._id}/`} className="mx-2 btn btn-primary btn-xs">
+                          Update
+                        </Link>
+                        <DeleteUser id={item._id} />
+                      </th>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="text-center">No users found</td>
                   </tr>
-                ))}
+                )}
               </tbody>
               {/* foot */}
               <tfoot>
                 <tr>
                   <th>Name</th>
-                  <th>Job</th>
-                  <th>Favorite Color</th>
+                  <th>Email</th>
+                  <th>Role</th>
                   <th>Action</th>
                 </tr>
               </tfoot>
